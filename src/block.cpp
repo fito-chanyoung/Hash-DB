@@ -71,8 +71,12 @@ string Block::CalMerkle(int init, int end){
 }
 
 string Block::GetMerkle(){
-	int tmpIndex= transnum-1;
+	if(transnum >=1){
+		int tmpIndex= transnum-1;
 	return CalMerkle(0,tmpIndex);
+	}
+	else
+		return SHA_512("NULL");
 	//cout<<"ret : "<<result<<endl;
 
 }

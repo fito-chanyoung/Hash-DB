@@ -16,7 +16,10 @@ void encrypt_file(string file, string key, string iv)
 {
 
 	string command;
-	command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K "+key+" -iv "+iv;
+	command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K ";
+	command.append(key);
+	command.append(" -iv ");
+	command.append(iv);
 	cout<<command<<endl;
 	system(command.c_str());
 

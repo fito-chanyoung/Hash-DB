@@ -110,11 +110,11 @@ private_chain::private_chain(string key, string iv){
 	for(int i =0; i<64;i++) key2.push_back(key[i*2]);
 	for(int i =0; i<32;i++) iv2.push_back(iv[i*3]);
 
-	key = key2;
-	iv = iv2;
+	this->key = key2;
+	this->iv = iv2;
 
 	cout<<key<<endl<<iv<<endl;
-	nodenum=-1;
+	nodenum=0;
 	int rc=0;
 	rc = pthread_create(&_nodemaker, NULL,PrintHello,NULL);
 	if (rc!=0) { printf("ERROR; ...%d\n", rc);
@@ -379,15 +379,16 @@ void private_chain::deep_handler(){
 	chainlog.open("chainlog",ios::app|ios::ate);
 	cout<<"signal input"<<endl;
 	char buff[20];
-	if(nodenum > 0){
+	//if(nodenum > 0){
 		cout<<"final hash "<<block.GetHash()<<endl;
 	cout<<"proceessing2..."<<endl;
 	time_t now = time(nullptr);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&now));
 	string Time(buff);
 
 	chain.open(Time, ios::ate|ios::app);
-	chainlog<<Time<<'.'<<line_num<<endl;
+	chainlog<<Time<<endl;
+	//chainlog<<Time<<'.'<<line_num<<endl;
 	chainlog.close();
 
 	cout<<"adc "<<block.get_Data()[1]<<endl;
@@ -404,11 +405,9 @@ void private_chain::deep_handler(){
 	cout<<"end"<<endl;
 	encrypt_file(Time,key,iv);
 
-	block.reset();
-
 	line_num=0;
 	nodenum++;
-	}
+	//}
 	cout<<line_num<<endl;
 	if(line_num ==0){
 		cout<<"no input "<<endl;
@@ -427,6 +426,7 @@ void private_chain::deep_handler(){
 		//Block newblock(nodenum,transactions,line_num);
 		//mychain.AddBlock(newblock);
 		}
+		block.BlockGen();
 		cout<<"final hash "<<block.GetHash()<<endl;
 		block.reset();
 
@@ -447,12 +447,12 @@ void private_chain::deep_handler(){
 void private_chain::deep_check(){
 
 	ifstream log;
-	log.open("chainlog.txt");
+	log.open("chainlog");
 	string nodename;
 	string pre_hash ="fffffffff";
 	string hesh;
 
-	getline(log,nodename);
+	//getline(log,nodename);
 	while(true){
 		if(nodenum != 0){
 			cout<<"stable check node name "<<nodename<<endl;
@@ -462,19 +462,6 @@ void private_chain::deep_check(){
 					i=0;
 				}*/
 				if(nodenum != 0){
-					hesh =Loadandcheck(nodename);
-					//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
-					//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
-					//cout<<"loadandcheck "<<hesh<<endl;
-					if(pre_hash=="fffffffff")
-						pre_hash=SHA_512(hesh);
-					else{
-						string mergedHash = pre_hash+hesh;
-						string com_hash;
-						for(int i=0; i<mergedHash.size();i+=2)
-							com_hash.push_back(mergedHash[i]);
-						pre_hash=SHA_512(com_hash);
-					}
 					if(nodename =="" || log.eof()){
 						cout<<"dead end"<<endl;
 						log.close();
@@ -488,6 +475,20 @@ void private_chain::deep_check(){
 					else{
 					getline(log,nodename);
 					}
+					hesh =Loadandcheck(nodename);
+					//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
+					//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
+					//cout<<"loadandcheck "<<hesh<<endl;
+					if(pre_hash=="fffffffff")
+						pre_hash=SHA_512(hesh);
+					else{
+						string mergedHash = pre_hash+hesh;
+						string com_hash;
+						for(int i=0; i<mergedHash.size();i+=2)
+							com_hash.push_back(mergedHash[i]);
+						pre_hash=SHA_512(com_hash);
+					}
+
 					if(block.GetMerkle() != hesh){
 						isStable(false);
 				}
@@ -643,7 +644,7 @@ int main (char argc, char *argv[])
 	int rc;
 	char buff[20];
 	time_t now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&now));
 	string Time(buff);
 	chainlog<<Time<<endl;
 	//chain.open(Time,ios::out|ios::app);
@@ -900,7 +901,7 @@ void Block::writeData(string path,string to, string key, string iv){
 
 	char buff[20];
 
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&_tTime));
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&_tTime));
 	string Time(buff);
 
 	decrypt_file(path,key,iv);
