@@ -15,7 +15,9 @@ void handleErrors(void)
 void encrypt_file(string file, string key, string iv)
 {
 
-	string command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K "+key+" -iv "+iv;
+	string command;
+	command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K "+key+" -iv "+iv;
+	cout<<command<<endl;
 	system(command.c_str());
 
 
@@ -23,7 +25,9 @@ void encrypt_file(string file, string key, string iv)
 
 void decrypt_file(string file, string key,string iv)
 {
-	string command = "openssl aes-256-cbc -d -salt -in "+file+".enc -out workspace.txt "+"-K "+key+" -iv "+iv;
+	string command;
+	command = "openssl aes-256-cbc -d -salt -in "+file+".enc -out workspace.txt "+"-K "+key+" -iv "+iv;
+	cout<<command<<endl;
 	system(command.c_str());
 }
 
