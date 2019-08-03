@@ -91,6 +91,7 @@ ifstream in;
 ofstream chainlog;
 ofstream chain;
 
+pthread_mutex_t mutex_lock;
 
 //string aes_MakeDecryptable(string str);
 
@@ -137,7 +138,7 @@ string private_chain::LoadnMerkle(int init,int end, vector<string> array){
 	//int size=tmp.size();
 	if(init == end){
 			//cout<<size<<endl;
-			cout<<init<<" matched "<<end<<" return 1 hash code"<<endl;
+			//cout<<init<<" matched "<<end<<" return 1 hash code"<<endl;
 			return SHA_512(tmp);
 		}
 		else{
@@ -183,7 +184,7 @@ string private_chain::Loadandcheck(string node){
 		getline(nodefd,tmp);
 		stringArray.push_back(tmp);
 	}
-	encrypt_file(node,key,iv);
+	//encrypt_file(node,key,iv);
 	system("rm workspace.txt");
 
 	//lengfd.open(node+"_leng.txt");
@@ -387,23 +388,28 @@ void private_chain::deep_handler(){
 	string Time(buff);
 
 	chain.open(Time, ios::ate|ios::app);
+
+	//pthread_mutex_lock(&mutex_lock);
 	chainlog<<Time<<endl;
 	//chainlog<<Time<<'.'<<line_num<<endl;
 	chainlog.close();
+	//pthread_mutex_unlock(&mutex_lock);
+	cout<<"line count "<<line_num<<endl;
 
-	cout<<"adc "<<block.get_Data()[1]<<endl;
-	if(line_num==0){
-			block.push_back("NULL");
+	if(line_num == 0){
+			block.push_back("none");
 			block.reHashing();
-			chain << "NULL";
+			chain << "none"<<"\n";
 
 	}
-
+	cout<<"adc "<<block.get_Data()[0]<<endl;
 	for(const auto &e :block.get_Data()) chain <<e<<"\n";
 
 
 	cout<<"end"<<endl;
 	encrypt_file(Time,key,iv);
+	string command=  "rm "+Time;
+	//system(command.c_str());
 
 	line_num=0;
 	nodenum++;
@@ -412,7 +418,7 @@ void private_chain::deep_handler(){
 	if(line_num ==0){
 		cout<<"no input "<<endl;
 		//unsigned char result[256];
-		chain <<"NULL"<<endl;
+		chain <<"none"<<endl;
 		chain.close();
 		//encrypt_file(,key,iv);
 		//transactions[0]=(const char*)result;
@@ -454,53 +460,62 @@ void private_chain::deep_check(){
 
 	//getline(log,nodename);
 	while(true){
-		if(nodenum != 0){
-			cout<<"stable check node name "<<nodename<<endl;
-			/*
-				if(mychain.GetHash() == mychain._GetLastBlock().GetHash()){
-					cout<<"clean"<<endl;
-					i=0;
-				}*/
-				if(nodenum != 0){
-					if(nodename =="" || log.eof()){
-						cout<<"dead end"<<endl;
-						log.close();
-						if(pre_hash != block.GetHash())
-							isStable(false);
-							//break;
-						log.open("chainlog.txt");
-						log.seekg(0,ios::beg);
-							//i=0;
+		//pthread_mutex_lock(&mutex_lock);
+		while(getline(log,nodename)){
+			if(nodenum != 0){
+				cout<<"stable check node name "<<nodename<<endl;
+				/*
+					if(mychain.GetHash() == mychain._GetLastBlock().GetHash()){
+						cout<<"clean"<<endl;
+						i=0;
+					}*/
+					if(nodenum != 0){
+						if(nodename =="" || log.eof()){
+							cout<<"dead end"<<endl;
+							//log.close();
+							if(pre_hash != block.GetHash())
+								isStable(false);
+								//break;
+							//log.open("chainlog.txt");
+							//log.seekg(0,ios::beg);
+								//i=0;
+							}
+						else{
+						//getline(log,nodename);
 						}
-					else{
-					getline(log,nodename);
-					}
-					hesh =Loadandcheck(nodename);
-					//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
-					//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
-					//cout<<"loadandcheck "<<hesh<<endl;
-					if(pre_hash=="fffffffff")
-						pre_hash=SHA_512(hesh);
-					else{
-						string mergedHash = pre_hash+hesh;
-						string com_hash;
-						for(int i=0; i<mergedHash.size();i+=2)
-							com_hash.push_back(mergedHash[i]);
-						pre_hash=SHA_512(com_hash);
-					}
+						hesh =Loadandcheck(nodename);
+						//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
+						//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
+						//cout<<"loadandcheck "<<hesh<<endl;
+						if(pre_hash=="fffffffff")
+							pre_hash=SHA_512(hesh);
+						else{
+							string mergedHash = pre_hash+hesh;
+							string com_hash;
+							for(int i=0; i<mergedHash.size();i+=2)
+								com_hash.push_back(mergedHash[i]);
+							pre_hash=SHA_512(com_hash);
+						}
 
-					if(block.GetMerkle() != hesh){
-						isStable(false);
+						if(block.GetMerkle() != hesh){
+							isStable(false);
+					}
+					else
+						sleep(1);
 				}
-				else
-					sleep(1);
-			}
 
-								//cout<<"node "<<i<<" currupted"<<endl;
-			}
+									//cout<<"node "<<i<<" currupted"<<endl;
+				}
 
-		else
-			sleep(1);
+			else
+				sleep(1);
+		}
+		log.close();
+		//pthread_mutex_unlock(&mutex_lock);
+
+		sleep(1);
+		//pthread_mutex_lock(&mutex_lock);
+		log.open("chainlog");
 	}
 }
 
@@ -652,6 +667,7 @@ int main (char argc, char *argv[])
 	chainlog.close();
 
 	private_chain pchain("itmt&beb4589","554efi#x9&%9");
+
 	/*rc = pthread_create(&sigid[0], NULL,chain.PrintHello(),NULL);
 	if (rc!=0) { printf("ERROR; ...%d\n", rc);
 	}
@@ -925,7 +941,7 @@ void Block::writeData(string path,string to, string key, string iv){
 	for(int i=0; i<str.size();i++){
 		//ld>>size;
 		//decrypt_file(result,key,iv);
-		if(str[0] != "NULL"){
+		if(str[0] != "none"){
 			fd<<str[i]<<endl;
 		}
 	}

@@ -83,7 +83,7 @@ string Block::GetMerkle(){
 
 void Block::BlockGen() {
 	_merkleHash=GetMerkle();
-	cout<<"merkleroot HASH "<<_merkleHash<<endl;
+	//cout<<"merkleroot HASH "<<_merkleHash<<endl;
 
 	string tmp="";
 	//tmp += _tTime;
@@ -101,7 +101,7 @@ void Block::BlockGen() {
 
     for(int i = 0; i < SHA512_DIGEST_LENGTH; i++)
         sprintf(&mdString[i*2], "%02x", (unsigned int)digest[i]);
-    cout<<"hash code "<<mdString<<endl;
+    //cout<<"hash code "<<mdString<<endl;
 	_sHash =mdString;
 }
 void Block::cData(vector<string> str){
