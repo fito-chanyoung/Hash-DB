@@ -262,6 +262,8 @@ string private_chain::get_Iv(){
 }
 
 void private_chain::isStable(bool flag){
+	cout<<"is stable changed  "<<flag<<endl;
+
 	is_stable=flag;
 }
 
@@ -409,7 +411,7 @@ void private_chain::deep_handler(){
 	cout<<"end"<<endl;
 	encrypt_file(Time,key,iv);
 	string command=  "rm "+Time;
-	//system(command.c_str());
+	system(command.c_str());
 
 	line_num=0;
 	nodenum++;
@@ -498,6 +500,8 @@ void private_chain::deep_check(){
 						}
 
 						if(block.GetMerkle() != hesh){
+							cout<<"getmerkle "<<block.GetMerkle()<<endl;
+							cout<<"hesh "<<hesh<<endl;
 							isStable(false);
 					}
 					else
