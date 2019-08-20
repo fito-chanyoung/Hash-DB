@@ -55,6 +55,7 @@ public:
 
 	void menu();
 
+	void excute();
 	void dataout();
 private:
 	static void sig_handler(int signo);
@@ -132,9 +133,9 @@ private_chain::private_chain(string key, string iv){
 
 	menu();
 
-	pthread_cancel(_nodemaker);
-	pthread_cancel(_stabler);
-	pthread_cancel(_counter);
+	//pthread_join(_nodemaker,NULL);
+	//pthread_join(_stabler,NULL);
+	//pthread_join(_counter,NULL);
 
 }
 
@@ -265,24 +266,35 @@ string private_chain::get_Iv(){
 	return iv;
 }
 
+void private_chain::excute(){
+	pthread_cancel(_nodemaker);
+	pthread_cancel(_stabler);
+	pthread_cancel(_counter);
+}
+
 void private_chain::dataout(){
 	ifstream in,datain;
 	ofstream out;
 
 	pthread_mutex_lock(&mutex_lock);
 	in.open("chainlog");
-	out.open("data.txt",ios::app |ios::ate);
+	out.open("data",ios::app |ios::ate);
 	string nodename;
 	string transaction;
 
 	vector<string> data;
 	while(getline(in,nodename)){
 		decrypt_file(nodename,key,iv);
-		datain.open("workspace");
+		datain.open("workspace.txt");
 		while(getline(datain,transaction)){
-			if(transaction.find("update")||transaction.find("insert")||transaction.find("delete")||transaction.find("alter")||transaction.find("create")||transaction.find("drop")||transaction.find("rename")||transaction.find("distinct"))
+			cout<<transaction<<endl;
+			if(transaction.find("update") != string::npos||transaction.find("insert")!= string::npos||transaction.find("delete")!= string::npos||transaction.find("alter")!= string::npos||transaction.find("drop")!= string::npos||transaction.find("rename")!= string::npos||transaction.find("distinct")!= string::npos)
+				out << transaction<<endl;
+			else if(transaction.find("create")!= string::npos && transaction.find("show") == string::npos)
 				out << transaction<<endl;
 		}
+		string command = "rm workspace.txt";
+		system(command.c_str());
 	}
 	pthread_mutex_unlock(&mutex_lock);
 }
@@ -564,12 +576,21 @@ void private_chain::deep_counter(){
 void private_chain::menu(){
 	string input;
 	while(true){
-		//cout<<"menu"<<endl;
-		//cout<<"1 - end program"<<endl;
+		cout<<"menu"<<endl;
+		cout<<"1 - end program"<<endl;
+		cout<<"2 - modifiyer out"<<endl;
+
 
 		cin >> input;
-		if(input =="1")
-			break;
+
+		switch (atoi(input.c_str())){
+			case 1:
+				excute();
+				break;
+			case 2:
+				dataout();
+				break;
+		}
 	}
 }
 
