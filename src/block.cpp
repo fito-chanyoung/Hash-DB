@@ -113,11 +113,10 @@ void Block::BlockGen() {
 
     for(int i = 0; i < SHA512_DIGEST_LENGTH; i++)
         sprintf(&mdString[i*2], "%02x", (unsigned int)digest[i]);
-<<<<<<< HEAD
     //cout<<"hash code_block.cpp "<<mdString<<endl;
-=======
+
     //cout<<"hash code "<<mdString<<endl;
->>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
+
 	_sHash =mdString;
 }
 void Block::cData(vector<string> str){
