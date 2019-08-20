@@ -24,16 +24,20 @@ public:
 	void writeData(string path,string to, string key, string iv);
 	void CoutString();
 	void reset();
+	//void reorganize(string key, string iv);
 	void push_back(string str);
 	void reHashing();
-	time_t returntTime();
+	//string GetreHash();
+	string returntTime();
+	void setTime(string time);
+
 private:
 
 	 uint32_t _nIndex;
 	 vector<string> _sData;
 	 string _sHash;
 	 string _merkleHash;
-	 time_t _tTime;
+	 string tTime;
 	 uint32_t transnum;
 	 string CalMerkle(int init, int end);
 };

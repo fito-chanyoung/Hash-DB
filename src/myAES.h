@@ -11,6 +11,9 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+#include <fstream>
+#include <unistd.h>
+#include <stdlib.h>
 
 #include <openssl/aes.h>
 #include <openssl/sha.h>

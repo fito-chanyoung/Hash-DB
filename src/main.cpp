@@ -1,5 +1,3 @@
-
-
 //============================================================================
 // Name        : 123.cpp
 // Author      : 
@@ -10,9 +8,8 @@
 
 //Todo 4초마다 블럭 재갱신, 스트링 벡터 대신 노드에 데이터 집어넣기
 #include <iostream>
-#include <unistd.h>
-#include <stdlib.h>
-#include <fstream>
+
+
 #include <string>
 #include <pthread.h>
 #include <signal.h>
@@ -55,6 +52,8 @@ public:
 	static void *PrintHello(void *);
 	static void *counter(void *);
 	void isStable(bool flag);
+
+	void menu();
 private:
 	static void sig_handler(int signo);
 	void deep_counter();
@@ -93,6 +92,7 @@ ifstream in;
 ofstream chainlog;
 ofstream chain;
 
+pthread_mutex_t mutex_lock;
 
 //string aes_MakeDecryptable(string str);
 
@@ -112,8 +112,8 @@ private_chain::private_chain(string key, string iv){
 	for(int i =0; i<64;i++) key2.push_back(key[i*2]);
 	for(int i =0; i<32;i++) iv2.push_back(iv[i*3]);
 
-	key = key2;
-	iv = iv2;
+	this->key = key2;
+	this->iv = iv2;
 
 	cout<<key<<endl<<iv<<endl;
 	nodenum=0;
@@ -121,13 +121,18 @@ private_chain::private_chain(string key, string iv){
 	rc = pthread_create(&_nodemaker, NULL,PrintHello,NULL);
 	if (rc!=0) { printf("ERROR; ...%d\n", rc);
 	}
-	sleep(2);
+	sleep(1);
 	rc = pthread_create(&_counter,NULL,counter,NULL);
 	if (rc!=0) { printf("ERROR; ...%d\n", rc);;
 				}
-	sleep(2);
+	sleep(3);
 	rc = pthread_create(&_stabler,NULL,StableCheck,NULL);
-	sleep(15);
+
+	menu();
+
+	pthread_cancel(_nodemaker);
+	pthread_cancel(_stabler);
+	pthread_cancel(_counter);
 
 }
 
@@ -139,7 +144,7 @@ string private_chain::LoadnMerkle(int init,int end, vector<string> array){
 	//int size=tmp.size();
 	if(init == end){
 			//cout<<size<<endl;
-			cout<<init<<" matched "<<end<<" return 1 hash code"<<endl;
+			//cout<<init<<" matched "<<end<<" return 1 hash code"<<endl;
 			return SHA_512(tmp);
 		}
 		else{
@@ -185,7 +190,7 @@ string private_chain::Loadandcheck(string node){
 		getline(nodefd,tmp);
 		stringArray.push_back(tmp);
 	}
-	encrypt_file(node,key,iv);
+	//encrypt_file(node,key,iv);
 	system("rm workspace.txt");
 
 	//lengfd.open(node+"_leng.txt");
@@ -259,6 +264,8 @@ string private_chain::get_Iv(){
 }
 
 void private_chain::isStable(bool flag){
+	cout<<"is stable changed  "<<flag<<endl;
+
 	is_stable=flag;
 }
 
@@ -374,41 +381,47 @@ void private_chain::deep_hello(){
 void private_chain::deep_handler(){
 	chainlog.open("chainlog",ios::app|ios::ate);
 	cout<<"signal input"<<endl;
-	cout<<"nodenum "<<nodenum<<endl;
 	char buff[20];
-	if(nodenum > 0){
+	//if(nodenum > 0){
 		cout<<"final hash "<<block.GetHash()<<endl;
 	cout<<"proceessing2..."<<endl;
 	time_t now = time(nullptr);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&now));
 	string Time(buff);
 
 	chain.open(Time, ios::ate|ios::app);
-	chainlog<<Time<<'.'<<line_num<<endl;
-	chainlog.close();
 
-	cout<<"adc "<<block.get_Data()[1]<<endl;
-	if(line_num==0){
-			block.push_back("NULL");
+	//pthread_mutex_lock(&mutex_lock);
+	chainlog<<Time<<endl;
+	//chainlog<<Time<<'.'<<line_num<<endl;
+	chainlog.close();
+	//pthread_mutex_unlock(&mutex_lock);
+	cout<<"line count "<<line_num<<endl;
+
+	if(line_num == 0){
+			block.push_back("none");
+			block.setTime(Time);
 			block.reHashing();
-			chain << "NULL";
+			chain << "none"<<"\n";
 
 	}
-
+	cout<<"adc "<<block.get_Data()[0]<<endl;
 	for(const auto &e :block.get_Data()) chain <<e<<"\n";
 
 
 	cout<<"end"<<endl;
 	encrypt_file(Time,key,iv);
+	//string command=  "rm "+Time;
+	//system(command.c_str());
 
 	line_num=0;
 	nodenum++;
-	}
+	//}
 	cout<<line_num<<endl;
 	if(line_num ==0){
 		cout<<"no input "<<endl;
 		//unsigned char result[256];
-		chain <<"NULL"<<endl;
+		chain <<"none"<<endl;
 		chain.close();
 		//encrypt_file(,key,iv);
 		//transactions[0]=(const char*)result;
@@ -423,7 +436,6 @@ void private_chain::deep_handler(){
 		//mychain.AddBlock(newblock);
 		}
 		block.BlockGen();
-		block.reset();
 		cout<<"final hash "<<block.GetHash()<<endl;
 		block.reset();
 
@@ -444,59 +456,74 @@ void private_chain::deep_handler(){
 void private_chain::deep_check(){
 
 	ifstream log;
-	log.open("chainlog.txt");
+	log.open("chainlog");
 	string nodename;
 	string pre_hash ="fffffffff";
 	string hesh;
 
-	getline(log,nodename);
+	//getline(log,nodename);
 	while(true){
-		if(nodenum != 0){
-			cout<<"stable check node name "<<nodename<<endl;
-			/*
-				if(mychain.GetHash() == mychain._GetLastBlock().GetHash()){
-					cout<<"clean"<<endl;
-					i=0;
-				}*/
-				if(nodenum != 0){
-					hesh =Loadandcheck(nodename);
-					//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
-					//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
-					//cout<<"loadandcheck "<<hesh<<endl;
-					if(pre_hash=="fffffffff")
-						pre_hash=SHA_512(hesh);
-					else{
-						string mergedHash = pre_hash+hesh;
-						string com_hash;
-						for(int i=0; i<mergedHash.size();i+=2)
-							com_hash.push_back(mergedHash[i]);
-						pre_hash=SHA_512(com_hash);
-					}
-					if(nodename =="" || log.eof()){
-						cout<<"dead end"<<endl;
-						log.close();
-						if(pre_hash != block.GetHash())
-							isStable(false);
-							//break;
-						log.open("chainlog.txt");
-						log.seekg(0,ios::beg);
-							//i=0;
+		//pthread_mutex_lock(&mutex_lock);
+		while(getline(log,nodename)){
+			if(nodenum != 0){
+				cout<<"stable check node name "<<nodename<<endl;
+				/*
+					if(mychain.GetHash() == mychain._GetLastBlock().GetHash()){
+						cout<<"clean"<<endl;
+						i=0;
+					}*/
+					if(nodenum != 0){
+						if(nodename =="" || log.eof()){
+							cout<<"dead end"<<endl;
+							//log.close();
+							if(pre_hash != block.GetHash())
+								isStable(false);
+								//break;
+							//log.open("chainlog.txt");
+							//log.seekg(0,ios::beg);
+								//i=0;
+							}
+						else{
+						//getline(log,nodename);
 						}
-					else{
-					getline(log,nodename);
+						hesh =Loadandcheck(nodename);
+						//cout<<"Cmerkle "<<mychain.Getnode(0).CMerkle()<<endl;
+						//cout<<"Hash "<<mychain.Getnode(0).GetHash()<<endl;
+						//cout<<"loadandcheck "<<hesh<<endl;
+						if(pre_hash=="fffffffff")
+							pre_hash=SHA_512(hesh);
+						else{
+							string mergedHash = pre_hash+hesh;
+							pre_hash=SHA_512(mergedHash);
+						}
+
+
+
 					}
-					if(block.GetMerkle() != hesh){
-						isStable(false);
+
+									//cout<<"node "<<i<<" currupted"<<endl;
 				}
-				else
-					sleep(1);
-			}
 
-								//cout<<"node "<<i<<" currupted"<<endl;
-			}
+			else
+				sleep(1);
+		}
 
-		else
-			sleep(1);
+		if(block.GetMerkle() == hesh){
+			cout<<"getmerkle "<<block.GetMerkle()<<endl;
+			cout<<"hesh "<<hesh<<endl;
+			isStable(true);
+		}
+		cout<<"test 1 ";
+		//log.close();
+		//pthread_mutex_unlock(&mutex_lock);
+		cout<<"test 2 ";
+
+		sleep(1);
+		log.clear();
+		log.seekg(0,log.beg);
+		//pthread_mutex_lock(&mutex_lock);
+		//log.open("chainlog");
+		cout<<"test3"<<endl;
 	}
 }
 
@@ -508,6 +535,18 @@ void private_chain::deep_counter(){
 		//write(fd[1],&data,20);
 		//cout<<"datd written";
 		}
+}
+
+void private_chain::menu(){
+	string input;
+	while(true){
+		cout<<"menu"<<endl;
+		cout<<"1 - end program"<<endl;
+
+		cin >> input;
+		if(input =="1")
+			break;
+	}
 }
 
 int main (char argc, char *argv[])
@@ -621,14 +660,14 @@ int main (char argc, char *argv[])
             return EXIT_FAILURE;
     }*/
 
-	in.open("/tmp/log.txt");
+	in.open("/home/song/log1.txt");
 	if(!in.is_open()) return EXIT_FAILURE;
 	chainlog.open("chainlog.txt", ios::ate|ios::app);
 
 	int rc;
 	char buff[20];
 	time_t now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&now));
 	string Time(buff);
 	chainlog<<Time<<endl;
 	//chain.open(Time,ios::out|ios::app);
@@ -636,6 +675,7 @@ int main (char argc, char *argv[])
 	chainlog.close();
 
 	private_chain pchain("itmt&beb4589","554efi#x9&%9");
+
 	/*rc = pthread_create(&sigid[0], NULL,chain.PrintHello(),NULL);
 	if (rc!=0) { printf("ERROR; ...%d\n", rc);
 	}
@@ -646,6 +686,8 @@ int main (char argc, char *argv[])
 	sleep(3);
 	rc = pthread_create(&sigid[2],NULL,StableCheck,NULL);
 	sleep(15);*/
+
+;
 
 	chain.close();
 	in.close();
@@ -866,10 +908,10 @@ void Block::writeData(string path,string to, string key, string iv){
 	ifstream data;
 	fd.open(to, ios::out|ios::ate|ios::app);
 
-	char buff[20];
+	//char buff[20];
 
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&_tTime));
-	string Time(buff);
+	//strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&_tTime));
+	//string Time(buff);
 
 	decrypt_file(path,key,iv);
 	data.open("workspace.txt");
@@ -892,11 +934,10 @@ void Block::writeData(string path,string to, string key, string iv){
 	for(int i=0; i<str.size();i++){
 		//ld>>size;
 		//decrypt_file(result,key,iv);
-		if(str[0] != "NULL"){
+		if(str[0] != "none"){
 			fd<<str[i]<<endl;
 		}
 	}
 	fd.close();
 	//ld.close();
 }
-

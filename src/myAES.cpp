@@ -15,17 +15,25 @@ void handleErrors(void)
 void encrypt_file(string file, string key, string iv)
 {
 
-	string command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K "+key+" -iv "+iv;
+	string command;
+	command = "openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K ";
+	command.append(key);
+	command.append(" -iv ");
+	command.append(iv);
+	cout<<command<<endl;
 	system(command.c_str());
-	//				  openssl aes-256-cbc -e -salt -in "+file+" -out "+file+".enc -K "+pass+" -iv "+iv
+	command = "rm "+file;
+	system(command.c_str());
 
 }
 
 void decrypt_file(string file, string key,string iv)
 {
-	string command = "openssl aes-256-cbc -d -salt -in "+file+".enc -out workspace.txt -K "+key+ " -iv "+iv;
+	string command;
+	command = "openssl aes-256-cbc -d -salt -in "+file+".enc -out workspace.txt "+"-K "+key+" -iv "+iv;
+	cout<<command<<endl;
 	system(command.c_str());
-	//				  openssl aes-256-cbc -d -salt -in "+file+".enc -out workspace.txt -K "+pass+ " -iv "+iv
+
 }
 
 string SHA_512(string str){
@@ -53,5 +61,4 @@ unsigned char* decrypt(RC4_KEY key, int block_size, unsigned char *ciphertext, u
 
   return plain_txt;
 }*/
-
 

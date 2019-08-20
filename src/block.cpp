@@ -8,9 +8,14 @@ Block::Block(){
 	_nIndex= 0;
 	transnum=0;
 	//_sData=new string[transection_num];
-	_tTime = time(nullptr);
-	sPrevHash="fffffffff";
+	time_t _tTime = time(nullptr);
 
+	char buff[20];
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&_tTime));
+	string Time(buff);
+	tTime=Time;
+
+	sPrevHash="fffffffff";
 }
 
 Block::Block(uint32_t nIndexIn, vector<string> sDataIn, int transection_num){
@@ -18,9 +23,14 @@ Block::Block(uint32_t nIndexIn, vector<string> sDataIn, int transection_num){
 	transnum=transection_num;
 	//_sData=new string[transection_num];
 	_sData=sDataIn;
-	_tTime = time(nullptr);
-	sPrevHash="fffffffff";
+	time_t _tTime = time(nullptr);
 
+	char buff[20];
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&_tTime));
+	string Time(buff);
+	tTime=Time;
+
+	sPrevHash="fffffffff";
 }
 string Block::GetHash(){
 	return _sHash;
@@ -72,25 +82,25 @@ string Block::CalMerkle(int init, int end){
 
 }
 
-string Block::GetMerkle(){//아무것도 인풋이 없다면 처리구문이 없다
-	if(transnum>=1){
+string Block::GetMerkle(){
+	if(transnum >=1){
 		int tmpIndex= transnum-1;
-		return CalMerkle(0,tmpIndex);}
-	else{
-		return SHA_512("NULL");
+	return CalMerkle(0,tmpIndex);
 	}
+	else
+		return SHA_512("NULL");
 	//cout<<"ret : "<<result<<endl;
 
 }
 
 void Block::BlockGen() {
 	_merkleHash=GetMerkle();
-	cout<<"merkleroot HASH "<<_merkleHash<<endl;
+	//cout<<"merkleroot HASH "<<_merkleHash<<endl;
 
 	string tmp="";
 	//tmp += _tTime;
 	tmp += sPrevHash;
-	tmp +=_nIndex;
+	//tmp +=_nIndex;
 	tmp += _merkleHash;
 
 	char str[tmp.size()];
@@ -103,7 +113,7 @@ void Block::BlockGen() {
 
     for(int i = 0; i < SHA512_DIGEST_LENGTH; i++)
         sprintf(&mdString[i*2], "%02x", (unsigned int)digest[i]);
-    cout<<"hash code "<<mdString<<endl;
+    //cout<<"hash code_block.cpp "<<mdString<<endl;
 	_sHash =mdString;
 }
 void Block::cData(vector<string> str){
@@ -116,13 +126,16 @@ string Block::CMerkle(){
 void Block::CoutString(){
 	cout<<_sData[0]<<endl;
 }
-time_t Block::returntTime(){
-	return _tTime;
+string Block::returntTime(){
+	return tTime;
+}
+
+void Block::setTime(string time){
+	tTime=time;
 }
 
 void Block::reset(){
 	_sData.clear();
-	transnum=0;
 }
 
 vector<string> Block::get_Data(){
@@ -140,8 +153,40 @@ void Block::reHashing(){
 	string tmp="";
 	//tmp += _tTime;
 	tmp += sPrevHash;
-	tmp +=_nIndex;
+	//tmp +=_nIndex;
 	tmp += _merkleHash;
 
 	_sHash = SHA_512(tmp);
 }
+/*
+string Block::GetreHash(){
+	_merkleHash=GetMerkle();
+
+	string tmp="";
+	//tmp += _tTime;
+	tmp += sPrevHash;
+	tmp +=_nIndex;
+	tmp += _merkleHash;
+
+	return SHA_512(tmp);
+}
+
+void Block::reorganize(string key, string iv){
+	char buff[20];
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&_tTime));
+	string Time(buff);
+
+	ifstream in;
+
+	decrypt_file(Time,key,iv);
+	in.open("workspace.txt");
+
+	string tmp;
+	vector<string> data;
+	while(getline(in,tmp))
+		data.push_back(tmp);
+
+	system("rm workspace.txt");
+	cData(data);
+}
+*/
