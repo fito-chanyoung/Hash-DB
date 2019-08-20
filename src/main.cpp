@@ -288,10 +288,9 @@ void private_chain::dataout(){
 		datain.open("workspace.txt");
 		while(getline(datain,transaction)){
 			cout<<transaction<<endl;
-			if(transaction.find("update") != string::npos||transaction.find("insert")!= string::npos||transaction.find("delete")!= string::npos||transaction.find("alter")!= string::npos||transaction.find("drop")!= string::npos||transaction.find("rename")!= string::npos||transaction.find("distinct")!= string::npos)
-				out << transaction<<endl;
-			else if(transaction.find("create")!= string::npos && transaction.find("show") == string::npos)
-				out << transaction<<endl;
+			if(transaction.find("update") != string::npos||transaction.find("create")!= string::npos||transaction.find("insert")!= string::npos||transaction.find("delete")!= string::npos||transaction.find("alter")!= string::npos||transaction.find("drop")!= string::npos||transaction.find("rename")!= string::npos||transaction.find("distinct")!= string::npos){
+
+			}
 		}
 		string command = "rm workspace.txt";
 		system(command.c_str());
