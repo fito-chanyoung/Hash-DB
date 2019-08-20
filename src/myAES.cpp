@@ -21,8 +21,11 @@ void encrypt_file(string file, string key, string iv)
 	command.append(" -iv ");
 	command.append(iv);
 	cout<<command<<endl;
+<<<<<<< HEAD
 	system(command.c_str());
 	command = "rm "+file;
+=======
+>>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
 	system(command.c_str());
 
 }

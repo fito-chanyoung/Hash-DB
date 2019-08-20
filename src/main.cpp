@@ -400,7 +400,10 @@ void private_chain::deep_handler(){
 
 	if(line_num == 0){
 			block.push_back("none");
+<<<<<<< HEAD
 			block.setTime(Time);
+=======
+>>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
 			block.reHashing();
 			chain << "none"<<"\n";
 
@@ -411,8 +414,13 @@ void private_chain::deep_handler(){
 
 	cout<<"end"<<endl;
 	encrypt_file(Time,key,iv);
+<<<<<<< HEAD
 	//string command=  "rm "+Time;
 	//system(command.c_str());
+=======
+	string command=  "rm "+Time;
+	system(command.c_str());
+>>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
 
 	line_num=0;
 	nodenum++;
@@ -494,6 +502,7 @@ void private_chain::deep_check(){
 							pre_hash=SHA_512(hesh);
 						else{
 							string mergedHash = pre_hash+hesh;
+<<<<<<< HEAD
 							pre_hash=SHA_512(mergedHash);
 						}
 
@@ -524,6 +533,35 @@ void private_chain::deep_check(){
 		//pthread_mutex_lock(&mutex_lock);
 		//log.open("chainlog");
 		cout<<"test3"<<endl;
+=======
+							string com_hash;
+							for(int i=0; i<mergedHash.size();i+=2)
+								com_hash.push_back(mergedHash[i]);
+							pre_hash=SHA_512(com_hash);
+						}
+
+						if(block.GetMerkle() != hesh){
+							cout<<"getmerkle "<<block.GetMerkle()<<endl;
+							cout<<"hesh "<<hesh<<endl;
+							isStable(false);
+					}
+					else
+						sleep(1);
+				}
+
+									//cout<<"node "<<i<<" currupted"<<endl;
+				}
+
+			else
+				sleep(1);
+		}
+		log.close();
+		//pthread_mutex_unlock(&mutex_lock);
+
+		sleep(1);
+		//pthread_mutex_lock(&mutex_lock);
+		log.open("chainlog");
+>>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
 	}
 }
 
@@ -910,8 +948,13 @@ void Block::writeData(string path,string to, string key, string iv){
 
 	//char buff[20];
 
+<<<<<<< HEAD
 	//strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&_tTime));
 	//string Time(buff);
+=======
+	strftime(buff, 20, "%Y.%m.%d_%H:%M:%S", localtime(&_tTime));
+	string Time(buff);
+>>>>>>> c1bac7ad153d78353faa1c76df7ffce3d80ce6ed
 
 	decrypt_file(path,key,iv);
 	data.open("workspace.txt");
