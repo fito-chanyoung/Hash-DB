@@ -55,8 +55,9 @@ public:
 
 	void menu();
 
-	void excute();
+	void exterminate();
 	void dataout();
+	void Alldata();
 private:
 	static void sig_handler(int signo);
 	void deep_counter();
@@ -133,9 +134,9 @@ private_chain::private_chain(string key, string iv){
 
 	menu();
 
-	//pthread_join(_nodemaker,NULL);
-	//pthread_join(_stabler,NULL);
-	//pthread_join(_counter,NULL);
+	pthread_join(_nodemaker,NULL);
+	pthread_join(_stabler,NULL);
+	pthread_join(_counter,NULL);
 
 }
 
@@ -266,13 +267,13 @@ string private_chain::get_Iv(){
 	return iv;
 }
 
-void private_chain::excute(){
+void private_chain::exterminate(){
 	pthread_cancel(_nodemaker);
 	pthread_cancel(_stabler);
 	pthread_cancel(_counter);
 }
 
-void private_chain::dataout(){
+void private_chain::Alldata(){
 	ifstream in,datain;
 	ofstream out;
 
@@ -287,15 +288,41 @@ void private_chain::dataout(){
 		decrypt_file(nodename,key,iv);
 		datain.open("workspace.txt");
 		while(getline(datain,transaction)){
-			cout<<transaction<<endl;
-			if(transaction.find("update") != string::npos||transaction.find("create")!= string::npos||transaction.find("insert")!= string::npos||transaction.find("delete")!= string::npos||transaction.find("alter")!= string::npos||transaction.find("drop")!= string::npos||transaction.find("rename")!= string::npos||transaction.find("distinct")!= string::npos){
-
-			}
+				out << transaction <<endl;
 		}
 		string command = "rm workspace.txt";
 		system(command.c_str());
 	}
 	pthread_mutex_unlock(&mutex_lock);
+}
+
+void private_chain::dataout(){
+	ifstream in,datain;
+		ofstream out;
+
+		pthread_mutex_lock(&mutex_lock);
+		in.open("chainlog");
+		out.open("data",ios::app |ios::ate);
+		string nodename;
+		string transaction;
+
+		vector<string> data;
+		while(getline(in,nodename)){
+			decrypt_file(nodename,key,iv);
+			datain.open("workspace.txt");
+			while(getline(datain,transaction)){
+				cout<<transaction<<endl;
+				if(transaction.find("update") != string::npos||transaction.find("create")!= string::npos||transaction.find("insert")!= string::npos||transaction.find("delete")!= string::npos||transaction.find("alter")!= string::npos||transaction.find("drop")!= string::npos||transaction.find("rename")!= string::npos||transaction.find("distinct")!= string::npos){
+					string tmp;
+					for(int i=40; i<transaction.size();i++)
+						tmp.push_back(transaction[i]);
+					out << tmp<<endl;
+				}
+			}
+			string command = "rm workspace.txt";
+			system(command.c_str());
+		}
+		pthread_mutex_unlock(&mutex_lock);
 }
 
 void private_chain::isStable(bool flag){
@@ -578,16 +605,19 @@ void private_chain::menu(){
 		cout<<"menu"<<endl;
 		cout<<"1 - end program"<<endl;
 		cout<<"2 - modifiyer out"<<endl;
-
+		cout<<"3 - All log out"<<endl;
 
 		cin >> input;
 
 		switch (atoi(input.c_str())){
 			case 1:
-				excute();
+				exterminate();
 				break;
 			case 2:
 				dataout();
+				break;
+			case 3:
+				Alldata();
 				break;
 		}
 	}
